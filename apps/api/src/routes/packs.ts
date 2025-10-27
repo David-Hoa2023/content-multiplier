@@ -86,6 +86,10 @@ const routes: FastifyPluginAsync = async (app) => {
         const { pack_id, brief_id, audience, language = 'en' } = req.body;
         const [rawBrief] = await q('SELECT * FROM briefs WHERE brief_id=$1', [brief_id]);
 
+        if (!rawBrief) {
+            return { error: 'Brief not found', brief_id };
+        }
+
         const safeParse = (val: any) => {
             if (!val) return []
             if (typeof val === 'string') return JSON.parse(val)
