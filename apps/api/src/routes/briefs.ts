@@ -50,12 +50,12 @@ const routes: FastifyPluginAsync = async (app) => {
         }
 
         const system = language === 'vn'
-            ? 'Bạn là một nhà nghiên cứu. Xây dựng một bản tóm tắt với dàn ý và sổ cái tuyên bố. Định dạng: {"key_points":[],"outline":[{h2:"",bullets:[]}],"claims_ledger":[{claim:"",sources:[{url:""}]}]}'
-            : 'You are a researcher. Build a brief with outline and a claims_ledger. Format: {"key_points":[],"outline":[{h2:"",bullets:[]}],"claims_ledger":[{claim:"",sources:[{url:""}]}]}';
+            ? 'Bạn là một nhà nghiên cứu chuyên nghiệp. Nhiệm vụ của bạn là tạo một bản tóm tắt nghiên cứu chi tiết với dàn ý đầy đủ.\n\nBẮT BUỘC bao gồm:\n1. key_points: 3-5 điểm chính\n2. counterpoints: 2-3 quan điểm đối lập (nếu có)\n3. outline: Dàn ý CÓ CẤU TRÚC với ít nhất 3-5 phần, mỗi phần phải có h2 và bullets\n4. claims_ledger: Danh sách các tuyên bố kèm nguồn\n\nĐịnh dạng JSON: {"key_points":["point1","point2"],"counterpoints":["counter1"],"outline":[{"h2":"Section Title","bullets":["bullet1","bullet2"]}],"claims_ledger":[{"claim":"statement","sources":[{"url":"source_url"}]}]}'
+            : 'You are a professional researcher. Your task is to create a detailed research brief with a complete outline.\n\nMUST include:\n1. key_points: 3-5 main points\n2. counterpoints: 2-3 opposing views (if applicable)\n3. outline: STRUCTURED outline with at least 3-5 sections, each must have h2 and bullets\n4. claims_ledger: List of claims with sources\n\nJSON format: {"key_points":["point1","point2"],"counterpoints":["counter1"],"outline":[{"h2":"Section Title","bullets":["bullet1","bullet2"]}],"claims_ledger":[{"claim":"statement","sources":[{"url":"source_url"}]}]}';
 
         const user = language === 'vn'
-            ? `Chủ đề: ${query}\nÝ tưởng: ${idea_id}\nBằng chứng:\n${JSON.stringify(snippets, null, 2)}\n\nTạo một bản tóm tắt nghiên cứu ở định dạng JSON.`
-            : `Topic: ${query}\nIdea: ${idea_id}\nEvidence:\n${JSON.stringify(snippets, null, 2)}\n\nCreate a research brief in JSON format.`;
+            ? `Chủ đề: ${query}\nÝ tưởng: ${idea_id}\nBằng chứng:\n${JSON.stringify(snippets, null, 2)}\n\nTạo một bản tóm tắt nghiên cứu CHI TIẾT ở định dạng JSON. Đảm bảo outline có ít nhất 3-5 phần với h2 và bullets rõ ràng.`
+            : `Topic: ${query}\nIdea: ${idea_id}\nEvidence:\n${JSON.stringify(snippets, null, 2)}\n\nCreate a DETAILED research brief in JSON format. Ensure the outline has at least 3-5 sections with clear h2 headings and bullet points.`;
         const result = await llm.completeJSON({ model: process.env.LLM_MODEL!, system, user, jsonSchema: contentSchema });
         const brief = result.brief || result
         console.log('Generated brief:', JSON.stringify(brief).slice(0, 200))

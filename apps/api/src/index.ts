@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import ideas from './routes/ideas.ts';
 import briefs from './routes/briefs.ts';
@@ -35,7 +36,7 @@ app.setErrorHandler(async (err, req, reply) => {
     reply.status(500).send({ ok: false, error: 'internal_error' });
 });
 
-app.listen({ port: Number(env.PORT || 3001), host: '0.0.0.0' })
+app.listen({ port: Number(env.PORT || 3001), host: '127.0.0.1' })
     .catch((e) => { app.log.error(e); process.exit(1); });
 
 // apps/api/src/index.ts

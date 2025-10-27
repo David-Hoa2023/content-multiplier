@@ -15,8 +15,9 @@ export default function IdeasPage() {
     async function load() {
         const r = await fetch('/api/ideas');
         const data = await r.json();
-        setIdeas(data);
-        setSelectedCount(data.filter((i: any) => i.status === 'selected').length);
+        const ideasArray = Array.isArray(data) ? data : [];
+        setIdeas(ideasArray);
+        setSelectedCount(ideasArray.filter((i: any) => i.status === 'selected').length);
     }
 
     async function gen() {
