@@ -41,4 +41,6 @@ app.listen({ port: Number(env.PORT || 3001), host: '127.0.0.1' })
 
 // apps/api/src/index.ts
 import contextPlugin from './plugins/context.ts';
+import { extractUserId } from './plugins/auth.ts';
 app.register(contextPlugin);
+app.addHook('preHandler', extractUserId);

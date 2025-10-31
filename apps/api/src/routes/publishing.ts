@@ -12,7 +12,7 @@ const routes: FastifyPluginAsync = async (app) => {
     // OAuth authentication endpoints
     app.get('/auth/:platform', async (req: any, reply) => {
         const { platform } = req.params
-        const userId = req.user_id || 'default_user' // In real app, get from auth
+        const userId = (req as any).userId
 
         try {
             const authUrl = await OAuthService.getAuthUrl(platform, userId)
@@ -28,7 +28,7 @@ const routes: FastifyPluginAsync = async (app) => {
     app.post('/auth/:platform/callback', async (req: any, reply) => {
         const { platform } = req.params
         const { code, state } = req.body
-        const userId = req.user_id || 'default_user'
+        const userId = (req as any).userId
 
         try {
             const credentials = await OAuthService.exchangeCode(platform, code, state, userId)
@@ -100,7 +100,7 @@ const routes: FastifyPluginAsync = async (app) => {
     // Webhook management
     app.post('/webhooks', async (req: any, reply) => {
         const { name, url, secret, events, headers } = req.body
-        const userId = req.user_id || 'default_user'
+        const userId = (req as any).userId
 
         if (!name || !url || !secret || !events) {
             return reply.status(400).send({
@@ -131,7 +131,7 @@ const routes: FastifyPluginAsync = async (app) => {
     })
 
     app.get('/webhooks', async (req: any, reply) => {
-        const userId = req.user_id || 'default_user'
+        const userId = (req as any).userId
 
         try {
             const webhooks = await q(`
@@ -152,7 +152,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     app.delete('/webhooks/:webhook_id', async (req: any, reply) => {
         const { webhook_id } = req.params
-        const userId = req.user_id || 'default_user'
+        const userId = (req as any).userId
 
         try {
             await q(`
@@ -172,7 +172,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     // Platform credentials management
     app.get('/credentials', async (req: any, reply) => {
-        const userId = req.user_id || 'default_user'
+        const userId = (req as any).userId
 
         try {
             const credentials = await q(`
@@ -193,7 +193,7 @@ const routes: FastifyPluginAsync = async (app) => {
 
     app.delete('/credentials/:platform', async (req: any, reply) => {
         const { platform } = req.params
-        const userId = req.user_id || 'default_user'
+        const userId = (req as any).userId
 
         try {
             await OAuthService.revokeCredentials(userId, platform)
