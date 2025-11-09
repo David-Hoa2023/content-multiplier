@@ -1,0 +1,8 @@
+/**
+ * Analytics Services
+ *
+ * Services for tracking and analyzing publishing performance
+ */
+
+export { publishingEventLogger, PublishingEventLogger } from './publishing-events';
+export type { PublishingEventData } from './publishing-events';
