@@ -6,6 +6,7 @@ import packs from './routes/packs.ts';
 import rag from './routes/rag.ts';
 import events from './routes/events.ts';
 import settings from './routes/settings.ts';
+import analytics from './routes/analytics.ts';
 import { env } from './env.ts';
 import { logEvent } from './services/telemetry.ts';
 
@@ -17,6 +18,7 @@ app.register(packs, { prefix: '/api/packs' });
 app.register(rag, { prefix: '/api/rag' });
 app.register(events, { prefix: '/api/events' });
 app.register(settings, { prefix: '/api/settings' });
+app.register(analytics, { prefix: '/api/analytics' });
 
 app.setErrorHandler(async (err, req, reply) => {
     console.error('Error:', err);

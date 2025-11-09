@@ -262,6 +262,30 @@ export class PublishingAnalytics {
   }
 
   /**
+   * Get most popular hour for publishing
+   *
+   * Returns the hour of day when content is most frequently published.
+   *
+   * @param startDate - Start date (inclusive)
+   * @param endDate - End date (inclusive)
+   * @returns Most popular hour (0-23) or null if no data
+   */
+  async getMostPopularHour(startDate: Date, endDate: Date): Promise<number | null> {
+    const hourly = await this.getPublishingByHour(startDate, endDate);
+
+    if (hourly.length === 0) {
+      return null;
+    }
+
+    // Find hour with highest count
+    const mostPopular = hourly.reduce((max, current) =>
+      current.count > max.count ? current : max
+    );
+
+    return mostPopular.hour;
+  }
+
+  /**
    * Get platform usage statistics
    *
    * Shows how frequently each platform is used, as a percentage
