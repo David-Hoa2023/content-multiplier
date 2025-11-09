@@ -130,13 +130,13 @@ export default function PublishingAnalyticsPage() {
     : '--';
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ padding: '1rem', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 'bold', marginBottom: '0.5rem' }}>
           Publishing Analytics
         </h1>
-        <p style={{ color: '#666' }}>
+        <p style={{ color: '#666', fontSize: 'clamp(0.875rem, 2vw, 1rem)' }}>
           Track and analyze your publishing performance across all platforms
         </p>
       </div>
@@ -230,7 +230,12 @@ export default function PublishingAnalyticsPage() {
       </div>
 
       {/* Charts Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))',
+        gap: '1rem',
+        marginBottom: '1rem'
+      }}>
         {/* Success Rate Bar Chart */}
         <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px' }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Success Rate by Platform</h3>
@@ -277,7 +282,8 @@ export default function PublishingAnalyticsPage() {
         {loading ? (
           <p style={{ color: '#999', textAlign: 'center', padding: '2rem' }}>Loading...</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e0e0e0' }}>
                 <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.875rem', color: '#666' }}>Platform</th>
@@ -297,6 +303,7 @@ export default function PublishingAnalyticsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
