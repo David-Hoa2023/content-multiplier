@@ -8,4 +8,10 @@ export { publishingEventLogger, PublishingEventLogger } from './publishing-event
 export type { PublishingEventData } from './publishing-events';
 
 export { publishingAnalytics, PublishingAnalytics } from './publishing-analytics';
-export type { SuccessRateMetrics } from './publishing-analytics';
+export type {
+  SuccessRateMetrics,
+  PublishingTimeMetrics,
+  PublishingTimeDistribution,
+  DayDistribution,
+  PlatformUsageStats
+} from './publishing-analytics';
