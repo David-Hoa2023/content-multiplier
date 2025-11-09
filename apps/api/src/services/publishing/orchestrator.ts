@@ -4,6 +4,7 @@ import { TwitterService, LinkedInService, FacebookService, InstagramService } fr
 import { SendGridService, MailchimpService } from './email.ts'
 import { WordPressService, MediumService } from './cms.ts'
 import { WebhookManager, WEBHOOK_EVENTS } from './webhooks.ts'
+import { publishingEventLogger } from '../analytics/publishing-events.ts'
 
 export class PublishingOrchestrator {
     private services: Map<PublishingPlatform, any> = new Map()
@@ -108,9 +109,13 @@ export class PublishingOrchestrator {
             throw new Error(`No service available for platform: ${job.platform}`)
         }
 
+        // Log publishing event as started
+        const eventId = await publishingEventLogger.markStarted(job.pack_id, job.platform)
+        const startTime = Date.now()
+
         // Update job status to processing
         await q(`
-            UPDATE publishing_queue 
+            UPDATE publishing_queue
             SET status = 'processing', updated_at = NOW()
             WHERE queue_id = $1
         `, [job.queue_id])
@@ -130,10 +135,14 @@ export class PublishingOrchestrator {
 
             // Update job status
             await q(`
-                UPDATE publishing_queue 
+                UPDATE publishing_queue
                 SET status = 'published', published_at = NOW(), updated_at = NOW()
                 WHERE queue_id = $1
             `, [job.queue_id])
+
+            // Log success with duration
+            const duration = Date.now() - startTime
+            await publishingEventLogger.markSuccess(eventId, duration)
 
             return { ...result, result_id: resultId }
 
@@ -142,10 +151,17 @@ export class PublishingOrchestrator {
 
             // Update job status
             await q(`
-                UPDATE publishing_queue 
+                UPDATE publishing_queue
                 SET status = 'failed', error_message = $2, updated_at = NOW()
                 WHERE queue_id = $1
             `, [job.queue_id, error instanceof Error ? error.message : 'Unknown error'])
+
+            // Log failure with error message
+            await publishingEventLogger.markFailed(
+                eventId,
+                error instanceof Error ? error.message : 'Unknown error',
+                job.retry_count || 0
+            )
 
             throw error
         }
