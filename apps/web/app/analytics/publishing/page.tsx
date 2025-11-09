@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { MetricCard } from './components/MetricCard';
+import { SuccessRateBarChart } from './components/SuccessRateBarChart';
+import { TimeDistributionLineChart } from './components/TimeDistributionLineChart';
+import { PlatformUsagePieChart } from './components/PlatformUsagePieChart';
+import { ExportButton } from './components/ExportButton';
 
 interface SuccessRateData {
   start_date: string;
@@ -41,6 +45,21 @@ interface PlatformUsageData {
   }>;
 }
 
+interface TimeDistributionData {
+  start_date: string;
+  end_date: string;
+  most_popular_hour: number | null;
+  by_hour: Array<{
+    hour: number;
+    count: number;
+  }>;
+  by_day_of_week: Array<{
+    day_of_week: number;
+    day_name: string;
+    count: number;
+  }>;
+}
+
 export default function PublishingAnalyticsPage() {
   const [dateRange, setDateRange] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -53,6 +72,7 @@ export default function PublishingAnalyticsPage() {
   const [successData, setSuccessData] = useState<SuccessRateData | null>(null);
   const [timesData, setTimesData] = useState<AverageTimesData | null>(null);
   const [usageData, setUsageData] = useState<PlatformUsageData | null>(null);
+  const [timeDistData, setTimeDistData] = useState<TimeDistributionData | null>(null);
 
   // Fetch analytics data
   useEffect(() => {
@@ -68,25 +88,28 @@ export default function PublishingAnalyticsPage() {
         });
 
         // Fetch all analytics in parallel
-        const [successRes, timesRes, usageRes] = await Promise.all([
+        const [successRes, timesRes, usageRes, timeDistRes] = await Promise.all([
           fetch(`${baseUrl}/api/analytics/publishing/success-rates?${params}`),
           fetch(`${baseUrl}/api/analytics/publishing/average-times?${params}`),
-          fetch(`${baseUrl}/api/analytics/publishing/platform-usage?${params}`)
+          fetch(`${baseUrl}/api/analytics/publishing/platform-usage?${params}`),
+          fetch(`${baseUrl}/api/analytics/publishing/time-distribution?${params}`)
         ]);
 
-        if (!successRes.ok || !timesRes.ok || !usageRes.ok) {
+        if (!successRes.ok || !timesRes.ok || !usageRes.ok || !timeDistRes.ok) {
           throw new Error('Failed to fetch analytics data');
         }
 
-        const [success, times, usage] = await Promise.all([
+        const [success, times, usage, timeDist] = await Promise.all([
           successRes.json(),
           timesRes.json(),
-          usageRes.json()
+          usageRes.json(),
+          timeDistRes.json()
         ]);
 
         setSuccessData(success);
         setTimesData(times);
         setUsageData(usage);
+        setTimeDistData(timeDist);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
         console.error('Error fetching analytics:', err);
@@ -127,26 +150,36 @@ export default function PublishingAnalyticsPage() {
         display: 'flex',
         gap: '1rem',
         alignItems: 'center',
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
+        justifyContent: 'space-between'
       }}>
-        <label>
-          Start Date:
-          <input
-            type="date"
-            value={dateRange.start}
-            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-            style={{ marginLeft: '0.5rem', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-        </label>
-        <label>
-          End Date:
-          <input
-            type="date"
-            value={dateRange.end}
-            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-            style={{ marginLeft: '0.5rem', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-        </label>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <label>
+            Start Date:
+            <input
+              type="date"
+              value={dateRange.start}
+              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              style={{ marginLeft: '0.5rem', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </label>
+          <label>
+            End Date:
+            <input
+              type="date"
+              value={dateRange.end}
+              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+              style={{ marginLeft: '0.5rem', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </label>
+        </div>
+        <ExportButton
+          successData={successData}
+          timesData={timesData}
+          usageData={usageData}
+          timeDistData={timeDistData}
+          dateRange={dateRange}
+        />
       </div>
 
       {/* Error Display */}
@@ -196,64 +229,46 @@ export default function PublishingAnalyticsPage() {
         />
       </div>
 
-      {/* Charts Section - Placeholders */}
+      {/* Charts Section */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        {/* Success Rate Bar Chart */}
         <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px' }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Success Rate by Platform</h3>
           {loading ? (
             <p style={{ color: '#999', textAlign: 'center', padding: '3rem' }}>Loading...</p>
+          ) : successData?.by_platform.length ? (
+            <SuccessRateBarChart data={successData.by_platform} />
           ) : (
-            <div>
-              {successData?.by_platform.map(platform => (
-                <div key={platform.platform} style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                    <span style={{ textTransform: 'capitalize', fontSize: '0.875rem' }}>{platform.platform}</span>
-                    <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{platform.success_rate.toFixed(1)}%</span>
-                  </div>
-                  <div style={{ background: '#f0f0f0', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
-                    <div style={{
-                      background: platform.success_rate >= 90 ? '#10b981' : platform.success_rate >= 75 ? '#f59e0b' : '#ef4444',
-                      height: '100%',
-                      width: `${platform.success_rate}%`,
-                      transition: 'width 0.3s'
-                    }} />
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.25rem' }}>
-                    {platform.successful} / {platform.total_attempts} attempts
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p style={{ color: '#999', textAlign: 'center', padding: '3rem' }}>No data available</p>
           )}
         </div>
 
+        {/* Platform Usage Pie Chart */}
         <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px' }}>
           <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Platform Usage Distribution</h3>
           {loading ? (
             <p style={{ color: '#999', textAlign: 'center', padding: '3rem' }}>Loading...</p>
+          ) : usageData?.platforms.length ? (
+            <PlatformUsagePieChart data={usageData.platforms} />
           ) : (
-            <div>
-              {usageData?.platforms.map(platform => (
-                <div key={platform.platform} style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                    <span style={{ textTransform: 'capitalize', fontSize: '0.875rem' }}>{platform.platform}</span>
-                    <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>
-                      {platform.total_publishes} ({platform.usage_percentage.toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div style={{ background: '#f0f0f0', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
-                    <div style={{
-                      background: '#3b82f6',
-                      height: '100%',
-                      width: `${platform.usage_percentage}%`,
-                      transition: 'width 0.3s'
-                    }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p style={{ color: '#999', textAlign: 'center', padding: '3rem' }}>No data available</p>
           )}
         </div>
+      </div>
+
+      {/* Time Distribution Charts */}
+      <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '8px', marginBottom: '1rem' }}>
+        <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Publishing Time Patterns</h3>
+        {loading ? (
+          <p style={{ color: '#999', textAlign: 'center', padding: '3rem' }}>Loading...</p>
+        ) : timeDistData?.by_hour.length && timeDistData?.by_day_of_week.length ? (
+          <TimeDistributionLineChart
+            hourlyData={timeDistData.by_hour}
+            dailyData={timeDistData.by_day_of_week}
+          />
+        ) : (
+          <p style={{ color: '#999', textAlign: 'center', padding: '3rem' }}>No data available</p>
+        )}
       </div>
 
       {/* Average Publishing Times Table */}
