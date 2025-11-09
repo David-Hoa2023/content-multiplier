@@ -4,7 +4,10 @@
     "type": "module",
     "scripts": {
         "dev": "tsx watch src/index.ts",
-        "start": "node --loader ts-node/esm src/index.ts"
+        "start": "node --loader ts-node/esm src/index.ts",
+        "aggregate-metrics": "tsx src/jobs/aggregate-publishing-metrics.ts",
+        "aggregate-metrics:status": "tsx src/jobs/aggregate-publishing-metrics.ts status",
+        "aggregate-metrics:cleanup": "tsx src/jobs/aggregate-publishing-metrics.ts cleanup"
     },
     "dependencies": {
         "ajv": "^8.17.1",
